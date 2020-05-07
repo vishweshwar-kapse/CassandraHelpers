@@ -72,7 +72,7 @@ namespace CassandraMaxFromTemeGetter
                         var txt = $"{signalid},{monthyear},{maxTimeRowSet.First()?["maxfromtime"]}";
                          Console.WriteLine(txt);
                         outputFile.WriteLine(txt);
-                        //Some comment
+                        //Some comment kjhkjnnnoij 
                     }
                 }
             }
