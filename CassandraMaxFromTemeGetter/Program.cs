@@ -70,8 +70,7 @@ namespace CassandraMaxFromTemeGetter
                         var boundStatement = selectStatement.Bind(signalid, monthyear);
                         var maxTimeRowSet = currentSession.Execute(boundStatement);
                         var txt = $"{signalid},{monthyear},{maxTimeRowSet.First()?["maxfromtime"]}";
-                        // Console.WriteLine(txt);
-                        //File.AppendAllText(MaxTimeStampFile, txt + Environment.NewLine);
+                         Console.WriteLine(txt);
                         outputFile.WriteLine(txt);
                     }
                 }
