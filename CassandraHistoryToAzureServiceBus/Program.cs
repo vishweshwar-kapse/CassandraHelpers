@@ -76,6 +76,7 @@ namespace CassandraHistoryToAzureServiceBus
                     {
                         var resultRowSet = currentSession.Execute(boundStatement);
 
+                        //Just some more code changes
                         foreach (var row in resultRowSet)
                         {
                             currentSignal = new SignalsInfo();
