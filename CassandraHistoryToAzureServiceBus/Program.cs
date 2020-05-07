@@ -88,7 +88,7 @@ namespace CassandraHistoryToAzureServiceBus
                             currentSignal.Min = Convert.ToDecimal(row["min"]);
                             currentSignal.Data = row["readings"].ToString();
                             currentSignal.CTime = Convert.ToInt64(row["insertdate"]);
-                            //jkjlkjkljlkj
+                            //jkjlkjkljlkj kadjsdlkaslk
                             signalsBuffer.AddSignal(currentSignal);
                         }
 
