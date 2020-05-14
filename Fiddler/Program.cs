@@ -13,6 +13,7 @@ namespace Fiddler
             long fromtime = 1509430460000;
             long totime = 1589295478090;
             string result = GetMonthYearBetween(fromtime, totime);
+            Console.WriteLine(result);
         }
 
         private static string GetMonthYearBetween(long startTime, long endTime)
