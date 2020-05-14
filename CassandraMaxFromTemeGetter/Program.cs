@@ -42,7 +42,6 @@ namespace CassandraMaxFromTemeGetter
                 string getSignaldList = "select distinct signalid,monthyear from tagdatacentral";
 
                 var rowset = currentSession.Execute(getSignaldList);
-                //var rowsList = rowset.ToList();
                 var maxRows = from r in rowset
                               group r by
                new
@@ -72,7 +71,6 @@ namespace CassandraMaxFromTemeGetter
                         var txt = $"{signalid},{monthyear},{maxTimeRowSet.First()?["maxfromtime"]}";
                          Console.WriteLine(txt);
                         outputFile.WriteLine(txt);
-                        //Some comment kjhkjnnnoij 
                     }
                 }
             }

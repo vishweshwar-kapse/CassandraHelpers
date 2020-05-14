@@ -5,13 +5,17 @@ VisualStudioVersion = 15.0.28307.1062
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureServiceBusPublisher", "ConsoleApp1\AzureServiceBusPublisher.csproj", "{44C67FB2-2E4C-460A-BF7B-A7FC78251FED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureServiceBusSubscriber", "..\ConsoleApp2\AzureServiceBusSubscriber.csproj", "{510436D0-FEC7-46A2-8C48-D7DE87E9BEE6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CassandraHistoryToAzureServiceBus", "CassandraHistoryToAzureServiceBus\CassandraHistoryToAzureServiceBus.csproj", "{33F72C03-34C5-451D-99D6-A257AE75E958}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CassandraDataMigration", "CassandraDataMigration\CassandraDataMigration.csproj", "{1979BAEA-C64B-4A64-9D35-CB3D0CAA989C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CassandraMaxFromTemeGetter", "CassandraMaxFromTemeGetter\CassandraMaxFromTemeGetter.csproj", "{32745C87-BDDB-4435-8469-DC02088FB542}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileToAzureServiceBus", "FileToAzureServiceBus\FileToAzureServiceBus.csproj", "{D56CAA9E-E99A-42F2-8EAD-4EC273A8AD55}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiddler", "Fiddler\Fiddler.csproj", "{238F0306-A27B-4956-AD05-50F7B411EF8B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureServiceBusSubscriber", "ConsoleApp2\AzureServiceBusSubscriber.csproj", "{3620854A-C481-4939-AEDC-3104C1E004F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +27,6 @@ Global
 		{44C67FB2-2E4C-460A-BF7B-A7FC78251FED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44C67FB2-2E4C-460A-BF7B-A7FC78251FED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44C67FB2-2E4C-460A-BF7B-A7FC78251FED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{510436D0-FEC7-46A2-8C48-D7DE87E9BEE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{510436D0-FEC7-46A2-8C48-D7DE87E9BEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{510436D0-FEC7-46A2-8C48-D7DE87E9BEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{510436D0-FEC7-46A2-8C48-D7DE87E9BEE6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{33F72C03-34C5-451D-99D6-A257AE75E958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{33F72C03-34C5-451D-99D6-A257AE75E958}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33F72C03-34C5-451D-99D6-A257AE75E958}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +39,18 @@ Global
 		{32745C87-BDDB-4435-8469-DC02088FB542}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32745C87-BDDB-4435-8469-DC02088FB542}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32745C87-BDDB-4435-8469-DC02088FB542}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D56CAA9E-E99A-42F2-8EAD-4EC273A8AD55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D56CAA9E-E99A-42F2-8EAD-4EC273A8AD55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D56CAA9E-E99A-42F2-8EAD-4EC273A8AD55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D56CAA9E-E99A-42F2-8EAD-4EC273A8AD55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{238F0306-A27B-4956-AD05-50F7B411EF8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{238F0306-A27B-4956-AD05-50F7B411EF8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{238F0306-A27B-4956-AD05-50F7B411EF8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{238F0306-A27B-4956-AD05-50F7B411EF8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3620854A-C481-4939-AEDC-3104C1E004F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3620854A-C481-4939-AEDC-3104C1E004F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3620854A-C481-4939-AEDC-3104C1E004F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3620854A-C481-4939-AEDC-3104C1E004F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
