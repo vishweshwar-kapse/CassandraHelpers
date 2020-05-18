@@ -139,7 +139,7 @@ namespace CassandraHistoryToAzureServiceBus
                 await eventHubClient.SendAsync(new EventData(ms));
                 Console.WriteLine("Sent a batch of data to Azure");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 File.AppendAllText(failedAzurePushTags, message + Environment.NewLine);
             }

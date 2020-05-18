@@ -111,5 +111,13 @@ namespace FileToAzureServiceBus
                 yield return array.Skip(i * size).Take(size);
             }
         }
+
+        public static IEnumerable<IEnumerable<T>> SplitTest<T>(T[] array, int size)
+        {
+            for (var i = 0; i < (float)array.Length / size; i++)
+            {
+                yield return array.Skip(i * size).Take(size);
+            }
+        }
     }
 }

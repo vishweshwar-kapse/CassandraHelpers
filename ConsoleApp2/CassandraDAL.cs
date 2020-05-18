@@ -87,6 +87,10 @@ namespace VegamSignalStoreHandler
         {
             try
             {
+                for (; ; )
+                {
+
+                }
                 StringBuilder cqlCommand = new StringBuilder();
                 cqlCommand.AppendFormat("select * from tagdatafailed where signalid={0} and monthyear={1} order by fromtime limit {2} ", signalID, monthYear, noOfRecords);
                 if (ConnectionState)
@@ -96,6 +100,7 @@ namespace VegamSignalStoreHandler
                     cassandraSessionMgr.StopCassandraSession();
                     throw new Exception("Cassandra Session Down");
                 }
+               
             }
             catch (Cassandra.NoHostAvailableException ex)
             {
@@ -274,7 +279,7 @@ namespace VegamSignalStoreHandler
             RowSet rs = null;
             try
             {
-                foreach (SignalsInfo signal in signals)
+                foreach (var signal in signals)
                 {
                     batchStmt.Add(cassandraSessionMgr.centralPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Avg, signal.Max, signal.Min, signal.Data, signal.CTime));
                 }
@@ -284,7 +289,7 @@ namespace VegamSignalStoreHandler
                 else
                 {
                     cassandraSessionMgr.StopCassandraSession();
-                    string[] cassandraDbIp = new string[1];
+                    var cassandraDbIp = new string[1];
                     cassandraDbIp[0] = "192.168.1.102";
 
                     Program.dal.StartCassandraSession(cassandraDbIp, null, null);
@@ -294,7 +299,7 @@ namespace VegamSignalStoreHandler
             catch (Cassandra.NoHostAvailableException ex)
             {
                 cassandraSessionMgr.StopCassandraSession();
-                string[] cassandraDbIp = new string[1];
+                var cassandraDbIp = new string[1];
                 cassandraDbIp[0] = "192.168.1.102";
 
                 Program.dal.StartCassandraSession(cassandraDbIp, null, null);
@@ -303,17 +308,14 @@ namespace VegamSignalStoreHandler
             catch (Exception ex)
             {
                 log.Error("M:- InsertTagDataCentral | V:- error batch update | Ex:- ", ex);
-                string[] cassandraDbIp = new string[1];
+                var cassandraDbIp = new string[1];
                 cassandraDbIp[0] = "192.168.1.102";
 
                 Program.dal.StartCassandraSession(cassandraDbIp, null, null);
                 // return true;
             }
 
-            if (rs != null)
-                return true;
-            else
-                return false;
+            return rs != null;
         }
 
         public RowSet InsertTagDataCentral(int signalID, string monthYear, long fromtime, long totime, decimal maxReading, decimal minReading, decimal avgReading, string jsonReadings, long currTime)
@@ -347,7 +349,8 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                BoundStatement insertBS = cassandraSessionMgr.centralPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Max, signal.Min, signal.Avg, signal.Data, signal.CTime);
+                var insertBS = cassandraSessionMgr.
+                    centralPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Max, signal.Min, signal.Avg, signal.Data, signal.CTime);
 
                 if (ConnectionState)
                     return cassandraSessionMgr.currentSession.Execute(insertBS);
@@ -376,7 +379,7 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                BoundStatement failedBS = cassandraSessionMgr.failedPreparedStmt.Bind(signalID, Convert.ToInt32(monthYear), fromtime, totime, maxReading, minReading, avgReading, jsonReadings, currTime);
+                var failedBS = cassandraSessionMgr.failedPreparedStmt.Bind(signalID, Convert.ToInt32(monthYear), fromtime, totime, maxReading, minReading, avgReading, jsonReadings, currTime);
 
                 if (ConnectionState)
                     cassandraSessionMgr.currentSession.Execute(failedBS);
@@ -402,7 +405,7 @@ namespace VegamSignalStoreHandler
             try
             {
                 var batchStm = new BatchStatement();
-                foreach (SignalsInfo signal in signals)
+                foreach (var signal in signals)
                 {
                     batchStm.Add(cassandraSessionMgr.failedPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Avg, signal.Max, signal.Min, signal.Data, signal.CTime));
                 }
@@ -430,7 +433,8 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                BoundStatement insertBS = cassandraSessionMgr.failedPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Avg, signal.Max, signal.Min, signal.Data, signal.CTime);
+                var insertBS = cassandraSessionMgr.
+                    failedPreparedStmt.Bind(signal.ID, Convert.ToInt32(signal.MYear), signal.FTime, signal.TTime, signal.Avg, signal.Max, signal.Min, signal.Data, signal.CTime);
 
                 if (ConnectionState)
                     cassandraSessionMgr.currentSession.Execute(insertBS);
@@ -459,7 +463,7 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                StringBuilder cqlCommandBuilder = new StringBuilder();
+                var cqlCommandBuilder = new StringBuilder();
                 if (byMin)
                     cqlCommandBuilder.AppendFormat("select avg, fromtime from tagdatacentral where signalid = {0} and monthyear in ({1}) and fromtime >= {2} and fromtime <= {3} ", signalId, monthYearList, fromTime, toTime);
                 else
@@ -477,7 +481,7 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                StringBuilder cqlCommandBuilder = new StringBuilder();
+                var cqlCommandBuilder = new StringBuilder();
                 if (byMin)
                     cqlCommandBuilder.AppendFormat(" select avg, fromtime from tagdatacentral where signalid = {0} and monthyear = {1} and fromtime <= {2} order by fromtime desc limit 1 ", signalId, monthYear, fromTime);
                 else
@@ -491,11 +495,11 @@ namespace VegamSignalStoreHandler
             }
         }
 
-        public static RowSet GetRecordCount(int signalId, long fromTime, int monthYear, bool byMin)
+        public static RowSet CountRecord(int signalId, long fromTime, int monthYear)
         {
             try
             {
-                StringBuilder cqlCommandBuilder = new StringBuilder();
+                var cqlCommandBuilder = new StringBuilder();
                 cqlCommandBuilder.AppendFormat(" select count(*) from tagdatacentral where signalid = {0} and monthyear = {1} and fromtime <= {2} ", signalId, monthYear, fromTime);
                 return cassandraSessionMgr.currentSession.Execute(cqlCommandBuilder.ToString());
             }
@@ -510,9 +514,9 @@ namespace VegamSignalStoreHandler
         {
             try
             {
-                StringBuilder cqlCommandBuilder = new StringBuilder();
+                var cqlCommandBuilder = new StringBuilder();
                 cqlCommandBuilder.AppendFormat(" select count(*) from tagdatacentral where signalid = {0} and monthyear in({1})  and fromtime >= {2} and fromtime <= {3} ", signalId, monthYearList, fromTime, toTime);
-                RowSet result = cassandraSessionMgr.currentSession.Execute(cqlCommandBuilder.ToString());
+                var result = cassandraSessionMgr.currentSession.Execute(cqlCommandBuilder.ToString());
                 if (result == null)
                     return 0;
                 var firstRow = result.FirstOrDefault();
@@ -523,7 +527,7 @@ namespace VegamSignalStoreHandler
             catch (Exception ex)
             {
                 log.Error("Error while reading record count : ", ex);
-                throw ex;
+                throw;
             }
         }
 

@@ -14,8 +14,8 @@ namespace ConsoleApp1
 {
     class Program
     {
-        static string eventHubName = "hkdctohdf";
-        static string connectionString = "Endpoint=sb://hkdctohdf.servicebus.windows.net/;SharedAccessKeyName=HkdcAccessKey;SharedAccessKey=BEuV8DZhsuhUR3WMhowITo+yTWh8LGVXeL3pINs15H8=";
+        static string eventHubName = "hkdctohdf1";
+        static string connectionString = "Endpoint=sb://hkdctohdf1.servicebus.windows.net/;SharedAccessKeyName=HkdcAccessKey;SharedAccessKey=BEuV8DZhsuhUR3WMhowITo+yTWh8LGVXeL3pINs15H8=";
         static void Main(string[] args)
         {
             MainAsync(args).GetAwaiter().GetResult();
