@@ -19,6 +19,9 @@ namespace TestProject
             someList.Add(1);
             someList.Add(1);
             someList.Add(1);
+            someList.Add(1);
+            someList.Add(1); someList.Add(1);
+            someList.Add(1);
 
             var result = StaticHelper.SplitTest<int>(someList.ToArray(), 2);
 
