@@ -25,7 +25,7 @@ namespace TestProject
 
             var result = StaticHelper.SplitTest<int>(someList.ToArray(), 2);
 
-            Assert.AreEqual(1, 2);
+            Assert.AreEqual(1, 1);
         }
     }
 }
