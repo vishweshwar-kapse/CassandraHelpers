@@ -24,7 +24,7 @@ namespace TestProject
             someList.Add(1);
 
             var result = StaticHelper.SplitTest<int>(someList.ToArray(), 2);
-
+            //slakdlaks
             Assert.AreEqual(1, 1);
         }
     }

@@ -44,7 +44,11 @@ namespace CassandraHistoryToAzureServiceBus
 
                 if (cassandraUserName != null && cassandraUserName.Length > 0 && cassandraPassword != null && cassandraPassword.Length > 0)
                 {
-                    cluster = Cluster.Builder().AddContactPoints(new string[] { cassandraIp }).WithPort(cassandraPort).WithCredentials(cassandraUserName, cassandraPassword).WithSocketOptions(options).WithQueryTimeout(int.MaxValue).Build();
+                    cluster = Cluster.Builder().AddContactPoints(new string[] { cassandraIp })
+                        .WithPort(cassandraPort)
+                        .WithCredentials(cassandraUserName, cassandraPassword)
+                        .WithSocketOptions(options)
+                        .WithQueryTimeout(int.MaxValue).Build();
                 }
                 else
                 {
