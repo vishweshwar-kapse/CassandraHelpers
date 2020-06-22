@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Cassandra;
+using log4net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Cassandra;
-using log4net;
-using ConsoleApp2;
 
-namespace VegamSignalStoreHandler
+namespace CassandraToCentralCassandraServer
 {
     public class CassandraDAL
     {
@@ -96,7 +95,7 @@ namespace VegamSignalStoreHandler
                     cassandraSessionMgr.StopCassandraSession();
                     throw new Exception("Cassandra Session Down");
                 }
-               
+
             }
             catch (Cassandra.NoHostAvailableException ex)
             {
@@ -288,7 +287,7 @@ namespace VegamSignalStoreHandler
                     var cassandraDbIp = new string[1];
                     cassandraDbIp[0] = "192.168.1.102";
 
-                    Program.dal.StartCassandraSession(cassandraDbIp, null, null);
+                    StartCassandraSession(cassandraDbIp, null, null);
                     log.Error("M:-InsertTagDataCentral | V:- Cassandra Session Down");
                 }
             }
@@ -298,7 +297,7 @@ namespace VegamSignalStoreHandler
                 var cassandraDbIp = new string[1];
                 cassandraDbIp[0] = "192.168.1.102";
 
-                Program.dal.StartCassandraSession(cassandraDbIp, null, null);
+                StartCassandraSession(cassandraDbIp, null, null);
                 log.Error("M:- InsertTagDataCentral | V:- cassandra db no host available | Ex:- ", ex);
             }
             catch (Exception ex)
@@ -307,7 +306,7 @@ namespace VegamSignalStoreHandler
                 var cassandraDbIp = new string[1];
                 cassandraDbIp[0] = "192.168.1.102";
 
-                Program.dal.StartCassandraSession(cassandraDbIp, null, null);
+                StartCassandraSession(cassandraDbIp, null, null);
                 // return true;
             }
 

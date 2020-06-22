@@ -1,5 +1,4 @@
 ﻿using Cassandra;
-using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -7,40 +6,40 @@ using System.Configuration;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CassandraHistoryToAzureServiceBus
+namespace CassandraToCentralCassandraServer
 {
     class Program
     {
-        static string eventHubName = ConfigurationManager.AppSettings["EventHubName"];
-        static string connectionString = ConfigurationManager.AppSettings["Microsoft.ServiceBus.ConnectionString"];
-        static string signalIdListFile = ConfigurationManager.AppSettings["SignalIdListFile"];
-        static string failedCassandraGetTags = ConfigurationManager.AppSettings["FailedTagIds"];
-        static string failedAzurePushTags = ConfigurationManager.AppSettings["FailedAzurePushTags"];
-
         static string cassandraIp = ConfigurationManager.AppSettings["CassandraIp"];
         static string cassandraUserName = ConfigurationManager.AppSettings["CassandraUserName"];
         static string cassandraPassword = ConfigurationManager.AppSettings["CassandraPassword"];
         static int cassandraPort = int.Parse(ConfigurationManager.AppSettings["CassandrPort"]);
-        static long SyncEndTime = long.Parse(ConfigurationManager.AppSettings["SyncEndDate"]);
-        static string logFile = "LogFile";
+        static SignlasInfoBuffer signalsBuffer = new SignlasInfoBuffer(int.Parse(ConfigurationManager.AppSettings["BufferSize"]));
+        static string centralUrl = ConfigurationManager.AppSettings["CetntralCassandraServiceURL"];
+        static string signalIdListFile = ConfigurationManager.AppSettings["SignalIdListFile"];
+
+        static string SuccessFile = ConfigurationManager.AppSettings["SuccessfullLinesCopiedFile"];
+        static string FailedFile = ConfigurationManager.AppSettings["FailedLinesCopiedFile"];
+        public static int BufferDelayForSending = int.Parse(ConfigurationManager.AppSettings["BufferDelayForSending"]);
+
         static ISession currentSession;
         static Cluster cluster;
-        static SignlasInfoBuffer signalsBuffer = new SignlasInfoBuffer(int.Parse(ConfigurationManager.AppSettings["BufferSize"]));
-        static EventHubClient eventHubClient;
+
         static void Main(string[] args)
         {
-            bool isSuccess = false;
             try
             {
                 SocketOptions options = new SocketOptions();
                 options.SetConnectTimeoutMillis(int.MaxValue);
                 options.SetReadTimeoutMillis(int.MaxValue);
                 options.SetTcpNoDelay(true);
-
-                File.AppendAllText(logFile, "Started pushing data at  " + DateTime.Now);
+                centralUrl = string.Format("http://{0}", centralUrl);
 
                 if (cassandraUserName != null && cassandraUserName.Length > 0 && cassandraPassword != null && cassandraPassword.Length > 0)
                 {
@@ -53,44 +52,43 @@ namespace CassandraHistoryToAzureServiceBus
                 else
                 {
 
-                    cluster = Cluster.Builder().AddContactPoints(new string[] { cassandraIp }).WithPort(cassandraPort).WithSocketOptions(options).WithQueryTimeout(int.MaxValue).Build();
+                    cluster = Cluster.Builder().AddContactPoints(new string[] { cassandraIp })
+                        .WithPort(cassandraPort)
+                        .WithSocketOptions(options)
+                        .WithQueryTimeout(int.MaxValue)
+                        .Build();
                 }
 
                 currentSession = cluster.Connect("vegamtagdata");
-
-                eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
-
+                string currentSignalId = "";
+                int currentItemCount = 0;
                 StringBuilder cqlCommandBuilder = new StringBuilder();
                 cqlCommandBuilder.Append(" select signalid, monthyear, fromtime, totime, avg, max, min, readings, insertdate ");
                 cqlCommandBuilder.Append(" from tagdatacentral where signalid = #signalid and monthyear in (#monthyear) and fromtime > #starttime and fromtime < #endtime");
                 string cqlCommand = cqlCommandBuilder.ToString();
-                signalsBuffer.OnBufferLimitReached += SendDataToAzure;
+                signalsBuffer.OnBufferLimitReached += On_BufferLimitReached;
 
                 IEnumerable<string> signalIdList = File.ReadLines(signalIdListFile);
                 SignalsInfo currentSignal;
-                int count = 1;
                 foreach (var line in signalIdList)
                 {
-                    Console.WriteLine("Currently processing the line number: " + count++);
-                    File.AppendAllText(logFile, "Currently processing the line" + line);
-                    string[] items = line.Split(',');
-
-                    isSuccess = long.TryParse(items[2], out long FromTime);
-
-                    if (!isSuccess)
+                    if (string.IsNullOrWhiteSpace(line))
                     {
-                        File.AppendAllText(failedCassandraGetTags, line + Environment.NewLine);
                         continue;
                     }
+                    string[] items = line.Split(',');
+                    currentSignalId = items[0];
+                    long.TryParse(items[2], out long FromTime);
+                    long.TryParse(items[3], out long SyncEndTime);
+                    currentItemCount = 0;
                     var currentCommand = cqlCommand.Replace("#signalid", items[0]);
                     currentCommand = currentCommand.Replace("#monthyear", GetMonthYearBetween(FromTime, SyncEndTime));
                     currentCommand = currentCommand.Replace("#starttime", FromTime.ToString());
                     currentCommand = currentCommand.Replace("#endtime", SyncEndTime.ToString());
+
                     try
                     {
                         var resultRowSet = currentSession.Execute(currentCommand);
-                        var itemcount = 0;
-                        //Just some more code changes
                         foreach (var row in resultRowSet)
                         {
                             currentSignal = new SignalsInfo();
@@ -103,19 +101,20 @@ namespace CassandraHistoryToAzureServiceBus
                             currentSignal.Min = Convert.ToDecimal(row["min"]);
                             currentSignal.Data = row["readings"].ToString();
                             currentSignal.CTime = Convert.ToInt64(row["insertdate"]);
+                            currentItemCount++;
                             signalsBuffer.AddSignal(currentSignal);
-                            itemcount++;
                         }
-                        Console.WriteLine("Finished processing the line number: " + count + " With a total item count of:" + itemcount);
-                        File.AppendAllText(logFile, "Finished processing the line" + line + " With a total item count of:" + itemcount);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        File.AppendAllText(failedCassandraGetTags, line + Environment.NewLine);
-                        continue;
+                        Console.WriteLine(ex.Message);
                     }
+                    Console.WriteLine("Completed pushing data for signalId " + currentSignalId + " with count: " + currentItemCount);
+                    File.AppendAllText(SuccessFile, currentSignalId + Environment.NewLine);
                 }
                 signalsBuffer.FlushData();
+                Console.ReadLine();
+
             }
             catch (Exception ex)
             {
@@ -123,34 +122,22 @@ namespace CassandraHistoryToAzureServiceBus
             }
         }
 
-        private static async Task SendDataToAzure(SignalsInfo[] buffer)
+        private static async Task On_BufferLimitReached(SignalsInfo[] buffer)
         {
-            string message = "";
+            List<string> signalsData = new List<string>();
             try
             {
-                var tempBuffer = buffer.Chunk(10);
 
-                foreach (var item in tempBuffer)
+                foreach (var item in buffer)
                 {
-                    message = JsonConvert.SerializeObject(buffer);
-
-                    //Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, message);
-                    byte[] mesageBytes = Encoding.UTF8.GetBytes(message);
-
-                    MemoryStream ms = new MemoryStream();
-
-                    using (GZipStream gzip = new GZipStream(ms, CompressionMode.Compress, true))
-                    {
-                        gzip.Write(mesageBytes, 0, mesageBytes.Length);
-                    }
-                    ms.Position = 0;
-                    await eventHubClient.SendAsync(new EventData(ms));
-                    Console.WriteLine("Sent a batch of data to Azure");
+                    signalsData.Add(JsonConvert.SerializeObject(item));
                 }
+                await StoreAtCentral(signalsData);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                File.AppendAllText(failedAzurePushTags, message + Environment.NewLine);
+                Console.WriteLine(ex.Message);
+                File.AppendAllText(FailedFile, JsonConvert.SerializeObject(buffer) + Environment.NewLine);
             }
         }
 
@@ -172,10 +159,62 @@ namespace CassandraHistoryToAzureServiceBus
             return epoch.AddMilliseconds(unixTime);
         }
         private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        public static async Task StoreAtCentral(List<string> jsonData)
+        {
+            try
+            {
+
+                var chunkedList = jsonData.Chunk(10);
+
+                foreach (var data in chunkedList)
+                {
+                    using (HttpClientHandler handler = new HttpClientHandler())
+                    {
+                        handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                        using (HttpClient client = new HttpClient(handler, false))
+                        {
+                            string json = JsonConvert.SerializeObject(data);
+                            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+
+                            MemoryStream ms = new MemoryStream();
+                            using (GZipStream gzip = new GZipStream(ms, CompressionMode.Compress, true))
+                            {
+                                gzip.Write(jsonBytes, 0, jsonBytes.Length);
+                            }
+                            ms.Position = 0;
+                            StreamContent content = new StreamContent(ms);
+                            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                            content.Headers.ContentEncoding.Add("gzip");
+                            HttpResponseMessage respMessage = null;
+                            try
+                            {
+                                if (centralUrl != null)
+                                    respMessage = await client.PostAsync(centralUrl + "/storeapi/signaldata/insertdata", content);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw;
+                            }
+
+                            if ((respMessage == null || respMessage.StatusCode != HttpStatusCode.OK))
+                            {
+                                throw new Exception("Failed to write to central cassandra");
+                            }
+
+                            System.Threading.Thread.Sleep(5);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 
- 
-   
+    public delegate Task BufferLimitReached(SignalsInfo[] buffer);
 
     [Serializable]
     public class SignalsInfo
@@ -192,8 +231,6 @@ namespace CassandraHistoryToAzureServiceBus
 
         public SignalsInfo() { }
     }
-
-    public delegate Task BufferLimitReached(SignalsInfo[] buffer);
 
     public class SignlasInfoBuffer
     {
@@ -213,6 +250,7 @@ namespace CassandraHistoryToAzureServiceBus
         {
             if (_currentIndex >= bufferSize)
             {
+                System.Threading.Thread.Sleep(Program.BufferDelayForSending);
                 OnBufferLimitReached?.Invoke(_buffer);
                 _buffer = new SignalsInfo[bufferSize];
                 _currentIndex = 0;

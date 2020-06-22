@@ -57,19 +57,20 @@ namespace CassandraMaxFromTemeGetter
 
                               };
 
-                string getMaxTimeQry = "select max(fromtime) as maxfromtime from tagdatacentral where signalid= ? and monthyear=?";
-                var selectStatement = currentSession.Prepare(getMaxTimeQry);
+                //string getMaxTimeQry = "select max(fromtime) as maxfromtime from tagdatacentral where signalid= ? and monthyear=?";
+                //var selectStatement = currentSession.Prepare(getMaxTimeQry);
                 using (StreamWriter outputFile = new StreamWriter(MaxTimeStampFile))
                 {
                     foreach (var item in maxRows)
                     {
-                        int signalid = item.signalid;
-                        int monthyear = item.monthyear;
+                        //int signalid = item.signalid;
+                        //int monthyear = item.monthyear;
 
-                        var boundStatement = selectStatement.Bind(signalid, monthyear);
-                        var maxTimeRowSet = currentSession.Execute(boundStatement);
-                        var txt = $"{signalid},{monthyear},{maxTimeRowSet.First()?["maxfromtime"]}";
-                         Console.WriteLine(txt);
+                        //var boundStatement = selectStatement.Bind(signalid, monthyear);
+                        // var maxTimeRowSet = currentSession.Execute(boundStatement);
+                        // var txt = $"{signalid},{monthyear},{maxTimeRowSet.First()?["maxfromtime"]}";
+                        var txt = $"{item.signalid},{item.monthyear}";
+                        Console.WriteLine(txt);
                         outputFile.WriteLine(txt);
                     }
                 }
